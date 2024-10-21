@@ -1,0 +1,25 @@
+---
+- name: Ensure that default vhost contains the HA policy
+  rabbitmq_policy:
+    name: "pol-ha-default-vhost"
+    vhost: "/"
+    pattern: ".*"
+    tags:
+      ha-mode: all
+      ha-sync-mode: automatic
+    state: present
+  when:
+    - rabbitmq_clustering_enabled
+    - rabbitmq_clustering_ha_default
+
+- name: Manage VHost Policies
+  rabbitmq_policy:
+    name: "pol-{{ item.key }}"
+    vhost: "{{ item.value.vhost }}"
+    pattern: "{{ item.value.pattern }}"
+    tags: "{{ item.value.tags }}"
+    apply_to: "{{ item.value.apply_to | default(omit) }}"
+    priority: "{{ item.value.priority | default(omit) }}"
+    state: "{{ item.value.state | default('present') }}"
+  with_dict: "{{ rabbitmq_policies }}"
+  when: rabbitmq_manage_policies

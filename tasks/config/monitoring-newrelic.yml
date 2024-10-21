@@ -1,0 +1,48 @@
+---
+- block:
+    - name: Check if license key is defined
+      assert:
+        that:
+          - newrelic_license is defined
+          - newrelic_license | length > 0
+
+    - name: Install and activate new-relic infra agent and rabbitmq agent
+      include_role:
+        name: newrelic.infrastructure-agent
+      vars:
+        nrinfragent_config:
+          license_key: "{{ newrelic_license }}"
+          log_file: "/var/log/newrelic-infra/nr-infra.log"
+        nrinfragent_integrations:
+          - name: nri-rabbitmq
+            state: "latest"
+
+    - name: Set newrelic filters
+      set_fact:
+        rabbitmq_filters:
+          queues: "{{ rabbitmq_newrelic_queues | default(omit, true) }}"
+          exchanges: "{{ rabbitmq_newrelic_exchanges | default(omit, true) }}"
+          vhosts: "{{ rabbitmq_newrelic_vhosts | default(omit, true) }}"
+          queues_regexes: '{{ rabbitmq_newrelic_queues | ternary(omit, ''[".*"]'', ''[".*"]'') }}'
+          exchanges_regexes: '{{ rabbitmq_newrelic_exchanges | ternary(omit, ''[".*"]'', ''[".*"]'') }}'
+          vhosts_regexes: '{{ rabbitmq_newrelic_vhosts | ternary(omit, ''[".*"]'', ''[".*"]'') }}'
+
+    - name: Configure newrelic when RabbitMQ is Clustered
+      block:
+        - name: Force newrelic rabbitmq agent command as inventory
+          ## In cluster environments, only one node should use the all command; the rest should use the inventory command.
+          ## ref: https://docs.newrelic.com/docs/integrations/host-integrations/host-integrations-list/rabbitmq-monitoring-integration#config
+          set_fact:
+            rabbitmq_newrelic_command: "inventory"
+          when: "ansible_nodename != groups[cluster_group_name][0]"
+      when:
+        - rabbitmq_clustering_enabled
+        - cluster_group_name is defined
+
+    - name: Configure nri-rabbitmq
+      template:
+        src: newrelic-rabbitmq-config.yml.j2
+        dest: "{{ rabbitmq_newrelic_agent_config_file_path }}"
+        backup: true
+      notify: restart newrelic-infra
+  tags: rabbitmq_monitoring

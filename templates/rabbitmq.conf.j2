@@ -1,0 +1,37 @@
+## ======================================
+## RabbitMQ broker section - {{ ansible_managed }}
+## ======================================
+
+## Related doc guide: https://rabbitmq.com/configure.html. See
+## https://rabbitmq.com/documentation.html for documentation ToC.
+
+## Networking
+## ====================
+listeners.tcp.default = {{ rabbitmq_conf_tcp_listeners_address ~ ":" if rabbitmq_conf_tcp_listeners_address is defined and rabbitmq_conf_tcp_listeners_address|ipaddr else ":::" }}{{ rabbitmq_conf_tcp_listeners_port | default("5672")}}
+num_acceptors.tcp = {{ rabbitmq_conf_num_acceptors_tcp | default("10")}}
+
+{% if rabbitmq_newrelic_agent_enabled %}
+##
+## Security, Access Control
+## ==============
+loopback_users.{{ rabbitmq_newrelic_username }} = true
+{% endif %}
+
+##
+## Resource Limits & Flow Control
+## ==============================
+vm_memory_high_watermark.relative = {{ rabbitmq_conf_vm_memory_high_watermark | default ("0.4")}}
+disk_free_limit.relative = {{ rabbitmq_conf_disk_free_limit_mem_relative }}
+
+##
+## Log Level
+## =====================
+log.file.level = {{ rabbitmq_default_loglevel }}
+
+##
+## Adicional settings
+## =====================
+## setting = value
+{% for setting, value in (rabbitmq_conf_extra_settings | default({}, true)).items() %}
+{{ setting }} = {{ value }}
+{% endfor %}

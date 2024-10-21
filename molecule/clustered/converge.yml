@@ -1,0 +1,6 @@
+---
+- name: Converge queue service clustered
+  hosts: all
+  become: true
+  roles:
+    - stone-payments.rabbitmq

@@ -1,0 +1,23 @@
+---
+- name: Manage Queues
+  rabbitmq_queue:
+    login_user: "{{ queue_item.login_user | default(rabbitmq_api_login_credentials['login_user'] | default(omit)) }}"
+    login_password: "{{ queue_item.login_password | default(rabbitmq_api_login_credentials['login_password'] | default(omit)) }}"
+    login_host: "{{ queue_item.login_host | default(rabbitmq_api_login_credentials['login_host'] | default(omit)) }}"
+    login_port: "{{ queue_item.login_port | default(rabbitmq_api_login_credentials['login_port'] | default(omit)) }}"
+    login_protocol: "{{ queue_item.login_protocol | default(rabbitmq_api_login_credentials['login_protocol'] | default(omit)) }}"
+    ca_cert: "{{ queue_item.ca_cert | default(rabbitmq_api_login_credentials['queue_item'] | default(omit)) }}"
+    client_cert: "{{ queue_item.client_cert | default(rabbitmq_api_login_credentials['client_cert'] | default(omit)) }}"
+    client_key: "{{ queue_item.client_key | default(rabbitmq_api_login_credentials['client_key'] | default(omit)) }}"
+    vhost: "{{ queue_item.value.vhost | default(omit) }}"
+    name: "{{ queue_item.key }}"
+    durable: "{{ queue_item.value.durable | default(omit) }}"
+    auto_delete: "{{ queue_item.value.auto_delete | default(omit) }}"
+    auto_expires: "{{ queue_item.value.auto_expires | default(omit) }}"
+    dead_letter_exchange: "{{ queue_item.value.dead_letter_exchange | default(omit) }}"
+    dead_letter_routing_key: "{{ queue_item.value.dead_letter_routing_key | default(omit) }}"
+    max_length: "{{ queue_item.value.max_length | default(omit) }}"
+    max_priority: "{{ queue_item.value.max_priority | default(omit) }}"
+    message_ttl: "{{ queue_item.value.message_ttl | default(omit) }}"
+    arguments: "{{ queue_item.value.arguments | default(omit) }}"
+    state: "{{ queue_item.value.state | default(omit) }}"

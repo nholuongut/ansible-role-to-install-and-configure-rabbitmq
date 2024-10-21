@@ -1,0 +1,51 @@
+---
+dependency:
+  name: galaxy
+  options:
+    role-file: roles/requirements.yml
+driver:
+  name: docker
+lint: |
+  yamllint .
+  ansible-lint
+  flake8
+platforms:
+  - name: rabbit01
+    image: centos/systemd
+    command: /usr/sbin/init
+    pre_build_image: true
+    privileged: true
+    capabilities:
+      - SYS_ADMIN
+    exposed_ports:
+      - 15672/tcp
+      - 5672/tcp
+    published_ports:
+      - 0.0.0.0:15672:15672/tcp
+      - 0.0.0.0:5672:5672/tcp
+    environment:
+      container: docker
+    tty: true
+    dns_servers:
+      - 8.8.8.8
+    network_mode: host
+    purge_networks: true
+    group:
+      - rabbitmq
+    env:
+      LANG: "en_US.utf8"
+      LC_ALL: "en_US.utf8"
+provisioner:
+  name: ansible
+  inventory:
+    group_vars:
+      all:
+        rabbitmq_major: 3
+        rabbitmq_minor: 8
+        rabbitmq_patch: 5
+        rabbitmq_repository_on_satellite: []
+scenatio:
+  name: default
+verifier:
+  name: testinfra
+  directory: ../../tests/default

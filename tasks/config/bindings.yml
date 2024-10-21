@@ -1,0 +1,20 @@
+---
+- name: Manage Bindings
+  rabbitmq_binding:
+    login_user: "{{ binding_item.login_user | default(rabbitmq_api_login_credentials['login_user'] | default(omit)) }}"
+    login_password: "{{ binding_item.login_password | default(rabbitmq_api_login_credentials['login_password'] | default(omit)) }}"
+    login_host: "{{ binding_item.login_host | default(rabbitmq_api_login_credentials['login_host'] | default(omit)) }}"
+    login_port: "{{ binding_item.login_port | default(rabbitmq_api_login_credentials['login_port'] | default(omit)) }}"
+    login_protocol: "{{ binding_item.login_protocol | default(rabbitmq_api_login_credentials['login_protocol'] | default(omit)) }}"
+    ca_cert: "{{ binding_item.ca_cert | default(rabbitmq_api_login_credentials['ca_cert'] | default(omit)) }}"
+    client_cert: "{{ binding_item.client_cert | default(rabbitmq_api_login_credentials['client_cert'] | default(omit)) }}"
+    client_key: "{{ binding_item.client_key | default(rabbitmq_api_login_credentials['client_key'] | default(omit)) }}"
+    vhost: "{{ binding_item.value.vhost | default(omit) }}"
+    name: "{{ binding_item.key }}"
+    destination: "{{ binding_item.value.destination | default(omit) }}"
+    type: "{{ binding_item.value.type | string() | default(omit) }}"
+    arguments: "{{ binding_item.value.arguments | default(omit) }}"
+    routing_key: "{{ binding_item.value.routing_key | default(omit) }}"
+    durable: "{{ binding_item.value.durable | default(omit) }}"
+    internal: "{{ binding_item.value.internal | default(omit) }}"
+    state: "{{ binding_item.value.state | default(omit) }}"

@@ -1,0 +1,67 @@
+---
+dependency:
+  name: galaxy
+  options:
+    role-file: roles/requirements.yml
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+lint: |
+  yamllint .
+  ansible-lint
+  flake8
+platforms:
+  - name: rabbit01
+    box: bento/centos-7.7
+    interfaces:
+      - network_name: private_network
+        type: static
+        ip: 192.168.50.10
+        auto_config: true
+    instance_raw_config_args:
+      - "vm.network 'forwarded_port', guest: 15672, host: 15672"
+      - "vm.network 'forwarded_port', guest: 5672, host: 5672"
+    groups:
+      - rabbitmq
+  - name: rabbit02
+    box: bento/centos-7.7
+    interfaces:
+      - network_name: private_network
+        type: static
+        ip: 192.168.50.11
+        auto_config: true
+    groups:
+      - rabbitmq
+  - name: rabbit03
+    box: bento/centos-7.7
+    interfaces:
+      - network_name: private_network
+        type: static
+        ip: 192.168.50.12
+        auto_config: true
+    groups:
+      - rabbitmq
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      fact_caching: jsonfile
+      fact_caching_connection: .fact_cache
+  inventory:
+    group_vars:
+      all:
+        rabbitmq_major: 3
+        rabbitmq_minor: 8
+        rabbitmq_patch: 5
+        rabbitmq_clustering_enabled: true
+        rabbitmq_repository_on_satellite: []
+        rabbitmq_clustering_cluster_name: rabbitmq
+        rabbitmq_erlang_cookie: A3F8POT34XPQ32K
+        rabbitmq_conf_env:
+          USE_LONGNAME: false
+scenario:
+  name: clustered
+verifier:
+  name: testinfra
+  directory: ../../tests/default

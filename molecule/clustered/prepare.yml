@@ -1,0 +1,42 @@
+---
+- name: Prepare
+  hosts: all
+  become: true
+  tasks:
+    - name: Install python for Ansible
+      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+      changed_when: false
+
+    - name: Install epel-release
+      include_role:
+        name: stone-payments.epel
+      when: ansible_os_family == "RedHat"
+
+    - name: Install required packages
+      yum:
+        name:
+          - net-tools
+          - glibc-common
+        state: present
+
+    - name: Force locale en_US.utf8
+      lineinfile:
+        dest: /etc/environment
+        state: present
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      with_items:
+        - regexp: "^LANG"
+          line: "LANG=en_US.utf8"
+        - regexp: "^LC_ALL"
+          line: "LC_ALL=en_US.utf8"
+
+    - name: Configures the hostname in the /etc/hosts
+      lineinfile:
+        state: present
+        dest: /etc/hosts
+        regexp: "^{{ hostvars[item]['ansible_eth1']['ipv4']['address'] }}"
+        line: "{{ hostvars[item]['ansible_eth1']['ipv4']['address'] }}  \
+                  {{ hostvars[item]['ansible_fqdn'] }}.localdomain  \
+                  {{ hostvars[item]['ansible_hostname'] }}"
+      with_items: "{{ groups['rabbitmq'] }}"
